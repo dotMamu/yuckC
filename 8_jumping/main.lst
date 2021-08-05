@@ -1,0 +1,738 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.1.6 #12439 (MINGW32)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module main
+                                      6 	.optsdcc -mgbz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _main
+                                     12 	.globl _jump
+                                     13 	.globl _wouldhitsurface
+                                     14 	.globl _performantdelay
+                                     15 	.globl _set_sprite_data
+                                     16 	.globl _wait_vbl_done
+                                     17 	.globl _joypad
+                                     18 	.globl _floorYposition
+                                     19 	.globl _gravity
+                                     20 	.globl _yuckChar
+                                     21 	.globl _currentspeedY
+                                     22 	.globl _jumping
+                                     23 	.globl _playerlocation
+                                     24 ;--------------------------------------------------------
+                                     25 ; special function registers
+                                     26 ;--------------------------------------------------------
+                                     27 ;--------------------------------------------------------
+                                     28 ; ram data
+                                     29 ;--------------------------------------------------------
+                                     30 	.area _DATA
+      000000                         31 _playerlocation::
+      000000                         32 	.ds 2
+      000002                         33 _jumping::
+      000002                         34 	.ds 1
+      000003                         35 _currentspeedY::
+      000003                         36 	.ds 1
+                                     37 ;--------------------------------------------------------
+                                     38 ; ram data
+                                     39 ;--------------------------------------------------------
+                                     40 	.area _INITIALIZED
+      000000                         41 _yuckChar::
+      000000                         42 	.ds 176
+      0000B0                         43 _gravity::
+      0000B0                         44 	.ds 1
+      0000B1                         45 _floorYposition::
+      0000B1                         46 	.ds 1
+                                     47 ;--------------------------------------------------------
+                                     48 ; absolute external ram data
+                                     49 ;--------------------------------------------------------
+                                     50 	.area _DABS (ABS)
+                                     51 ;--------------------------------------------------------
+                                     52 ; global & static initialisations
+                                     53 ;--------------------------------------------------------
+                                     54 	.area _HOME
+                                     55 	.area _GSINIT
+                                     56 	.area _GSFINAL
+                                     57 	.area _GSINIT
+                                     58 ;--------------------------------------------------------
+                                     59 ; Home
+                                     60 ;--------------------------------------------------------
+                                     61 	.area _HOME
+                                     62 	.area _HOME
+                                     63 ;--------------------------------------------------------
+                                     64 ; code
+                                     65 ;--------------------------------------------------------
+                                     66 	.area _CODE
+                                     67 ;main.c:12: void performantdelay(UINT8 numloops){
+                                     68 ;	---------------------------------
+                                     69 ; Function performantdelay
+                                     70 ; ---------------------------------
+      000000                         71 _performantdelay::
+                                     72 ;main.c:14: for( i = 0; i < numloops;i++){
+      000000 0E 00                   73 	ld	c, #0x00
+      000002                         74 00103$:
+      000002 79                      75 	ld	a, c
+      000003 F8 02                   76 	ldhl	sp,	#2
+      000005 96                      77 	sub	a, (hl)
+      000006 D0                      78 	ret	NC
+                                     79 ;main.c:15: wait_vbl_done();
+      000007 CDr00r00                80 	call	_wait_vbl_done
+                                     81 ;main.c:14: for( i = 0; i < numloops;i++){
+      00000A 0C                      82 	inc	c
+                                     83 ;main.c:19: }
+      00000B 18 F5                   84 	jr	00103$
+                                     85 ;main.c:21: INT8 wouldhitsurface(UINT8 projectedYposition){
+                                     86 ;	---------------------------------
+                                     87 ; Function wouldhitsurface
+                                     88 ; ---------------------------------
+      00000D                         89 _wouldhitsurface::
+                                     90 ;main.c:22: if(projectedYposition>= floorYposition){
+      00000D F8 02                   91 	ldhl	sp,	#2
+      00000F 7E                      92 	ld	a, (hl)
+                                     93 ;setupPair	HL
+      000010 21rB1r00                94 	ld	hl, #_floorYposition
+      000013 96                      95 	sub	a, (hl)
+      000014 38 02                   96 	jr	C, 00102$
+                                     97 ;main.c:23: return floorYposition;
+                                     98 ;setupPair	HL
+      000016 5E                      99 	ld	e, (hl)
+      000017 C9                     100 	ret
+      000018                        101 00102$:
+                                    102 ;main.c:25: return -1;
+      000018 1E FF                  103 	ld	e, #0xff
+                                    104 ;main.c:26: }
+      00001A C9                     105 	ret
+                                    106 ;main.c:28: void jump(UINT8 spriteid, UINT8 spritelocation[2]){
+                                    107 ;	---------------------------------
+                                    108 ; Function jump
+                                    109 ; ---------------------------------
+      00001B                        110 _jump::
+      00001B 3B                     111 	dec	sp
+      00001C 3B                     112 	dec	sp
+                                    113 ;main.c:31: if(jumping ==0 ){
+                                    114 ;setupPair	HL
+      00001D 21r02r00               115 	ld	hl, #_jumping
+      000020 7E                     116 	ld	a, (hl)
+      000021 B7                     117 	or	a, a
+      000022 20 07                  118 	jr	NZ, 00102$
+                                    119 ;main.c:32: jumping = 1;
+                                    120 ;setupPair	HL
+      000024 36 01                  121 	ld	(hl), #0x01
+                                    122 ;main.c:33: currentspeedY = 10;
+                                    123 ;setupPair	HL
+      000026 21r03r00               124 	ld	hl, #_currentspeedY
+      000029 36 0A                  125 	ld	(hl), #0x0a
+      00002B                        126 00102$:
+                                    127 ;main.c:37: currentspeedY = currentspeedY + gravity;
+                                    128 ;setupPair	HL
+      00002B FAr03r00               129 	ld	a, (#_currentspeedY)
+                                    130 ;setupPair	HL
+      00002E 21rB0r00               131 	ld	hl, #_gravity
+      000031 86                     132 	add	a, (hl)
+                                    133 ;setupPair	HL
+      000032 EAr03r00               134 	ld	(#_currentspeedY),a
+                                    135 ;main.c:39: spritelocation[1] = spritelocation[1] - currentspeedY;
+      000035 F8 05                  136 	ldhl	sp,	#5
+      000037 2A                     137 	ld	a, (hl+)
+      000038 4F                     138 	ld	c, a
+      000039 46                     139 	ld	b, (hl)
+      00003A 03                     140 	inc	bc
+      00003B 0A                     141 	ld	a, (bc)
+                                    142 ;setupPair	HL
+      00003C 21r03r00               143 	ld	hl, #_currentspeedY
+      00003F 96                     144 	sub	a, (hl)
+      000040 02                     145 	ld	(bc), a
+                                    146 ;main.c:41: possiblesurfaceY = wouldhitsurface(spritelocation[1]);
+      000041 C5                     147 	push	bc
+      000042 F5                     148 	push	af
+      000043 33                     149 	inc	sp
+      000044 CDr0Dr00               150 	call	_wouldhitsurface
+      000047 33                     151 	inc	sp
+      000048 C1                     152 	pop	bc
+      000049 F8 00                  153 	ldhl	sp,	#0
+      00004B 73                     154 	ld	(hl), e
+                                    155 ;main.c:45: set_sprite_tile(spriteid,2);
+      00004C F8 04                  156 	ldhl	sp,	#4
+      00004E 7E                     157 	ld	a, (hl)
+      00004F F8 01                  158 	ldhl	sp,	#1
+                                    159 ;main.c:43: if(possiblesurfaceY > -1){
+      000051 32                     160 	ld	(hl-), a
+      000052 5E                     161 	ld	e, (hl)
+      000053 3E FF                  162 	ld	a,#0xff
+      000055 57                     163 	ld	d,a
+      000056 96                     164 	sub	a, (hl)
+      000057 CB 7B                  165 	bit	7, e
+      000059 28 07                  166 	jr	Z, 00122$
+      00005B CB 7A                  167 	bit	7, d
+      00005D 20 08                  168 	jr	NZ, 00123$
+      00005F BF                     169 	cp	a, a
+      000060 18 05                  170 	jr	00123$
+      000062                        171 00122$:
+      000062 CB 7A                  172 	bit	7, d
+      000064 28 01                  173 	jr	Z, 00123$
+      000066 37                     174 	scf
+      000067                        175 00123$:
+      000067 30 2F                  176 	jr	NC, 00104$
+                                    177 ;main.c:44: jumping = 0;
+                                    178 ;setupPair	HL
+      000069 21r02r00               179 	ld	hl, #_jumping
+      00006C 36 00                  180 	ld	(hl), #0x00
+                                    181 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      00006E F8 01                  182 	ldhl	sp,	#1
+      000070 5E                     183 	ld	e, (hl)
+      000071 16 00                  184 	ld	d, #0x00
+      000073 CB 23                  185 	sla	e
+      000075 CB 12                  186 	rl	d
+      000077 CB 23                  187 	sla	e
+      000079 CB 12                  188 	rl	d
+      00007B 21r01r00               189 	ld	hl,#_shadow_OAM + 1
+      00007E 19                     190 	add	hl,de
+      00007F 23                     191 	inc	hl
+      000080 36 02                  192 	ld	(hl), #0x02
+                                    193 ;main.c:46: move_sprite(spriteid,spritelocation[0],possiblesurfaceY);
+      000082 F8 05                  194 	ldhl	sp,	#5
+      000084 2A                     195 	ld	a, (hl+)
+      000085 4F                     196 	ld	c, a
+      000086 46                     197 	ld	b, (hl)
+      000087 0A                     198 	ld	a, (bc)
+      000088 4F                     199 	ld	c, a
+                                    200 ;c:/gbdk/include/gb/gb.h:1247: OAM_item_t * itm = &shadow_OAM[nb];
+      000089 21r00r00               201 	ld	hl, #_shadow_OAM
+      00008C 19                     202 	add	hl, de
+      00008D 5D                     203 	ld	e, l
+      00008E 54                     204 	ld	d, h
+                                    205 ;c:/gbdk/include/gb/gb.h:1248: itm->y=y, itm->x=x;
+      00008F F8 00                  206 	ldhl	sp,	#0
+      000091 7E                     207 	ld	a, (hl)
+      000092 12                     208 	ld	(de), a
+      000093 13                     209 	inc	de
+      000094 79                     210 	ld	a, c
+      000095 12                     211 	ld	(de), a
+                                    212 ;main.c:46: move_sprite(spriteid,spritelocation[0],possiblesurfaceY);
+      000096 18 2C                  213 	jr	00110$
+      000098                        214 00104$:
+                                    215 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      000098 F8 01                  216 	ldhl	sp,	#1
+      00009A 5E                     217 	ld	e, (hl)
+      00009B 16 00                  218 	ld	d, #0x00
+      00009D CB 23                  219 	sla	e
+      00009F CB 12                  220 	rl	d
+      0000A1 CB 23                  221 	sla	e
+      0000A3 CB 12                  222 	rl	d
+      0000A5 21r01r00               223 	ld	hl,#_shadow_OAM + 1
+      0000A8 19                     224 	add	hl,de
+      0000A9 23                     225 	inc	hl
+      0000AA 36 01                  226 	ld	(hl), #0x01
+                                    227 ;main.c:49: move_sprite(spriteid,spritelocation[0],spritelocation[1]);
+      0000AC 0A                     228 	ld	a, (bc)
+      0000AD F8 01                  229 	ldhl	sp,	#1
+      0000AF 77                     230 	ld	(hl), a
+      0000B0 F8 05                  231 	ldhl	sp,	#5
+      0000B2 2A                     232 	ld	a, (hl+)
+      0000B3 4F                     233 	ld	c, a
+      0000B4 46                     234 	ld	b, (hl)
+      0000B5 0A                     235 	ld	a, (bc)
+      0000B6 4F                     236 	ld	c, a
+                                    237 ;c:/gbdk/include/gb/gb.h:1247: OAM_item_t * itm = &shadow_OAM[nb];
+      0000B7 21r00r00               238 	ld	hl, #_shadow_OAM
+      0000BA 19                     239 	add	hl, de
+      0000BB 5D                     240 	ld	e, l
+      0000BC 54                     241 	ld	d, h
+                                    242 ;c:/gbdk/include/gb/gb.h:1248: itm->y=y, itm->x=x;
+      0000BD F8 01                  243 	ldhl	sp,	#1
+      0000BF 7E                     244 	ld	a, (hl)
+      0000C0 12                     245 	ld	(de), a
+      0000C1 13                     246 	inc	de
+      0000C2 79                     247 	ld	a, c
+      0000C3 12                     248 	ld	(de), a
+                                    249 ;main.c:49: move_sprite(spriteid,spritelocation[0],spritelocation[1]);
+      0000C4                        250 00110$:
+                                    251 ;main.c:55: }
+      0000C4 33                     252 	inc	sp
+      0000C5 33                     253 	inc	sp
+      0000C6 C9                     254 	ret
+                                    255 ;main.c:57: void main(){
+                                    256 ;	---------------------------------
+                                    257 ; Function main
+                                    258 ; ---------------------------------
+      0000C7                        259 _main::
+      0000C7 3B                     260 	dec	sp
+                                    261 ;main.c:59: UINT8 currentSpriteIndex = 0;
+      0000C8 0E 00                  262 	ld	c, #0x00
+                                    263 ;main.c:61: set_sprite_data(0,10,yuckChar);
+      0000CA 11r00r00               264 	ld	de, #_yuckChar
+      0000CD D5                     265 	push	de
+      0000CE 3E 0A                  266 	ld	a, #0x0a
+      0000D0 F5                     267 	push	af
+      0000D1 33                     268 	inc	sp
+      0000D2 AF                     269 	xor	a, a
+      0000D3 F5                     270 	push	af
+      0000D4 33                     271 	inc	sp
+      0000D5 CDr00r00               272 	call	_set_sprite_data
+      0000D8 E8 04                  273 	add	sp, #4
+                                    274 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      0000DA 21r02r00               275 	ld	hl, #(_shadow_OAM + 2)
+      0000DD 36 00                  276 	ld	(hl), #0x00
+                                    277 ;main.c:63: playerlocation[0] = 10;
+      0000DF 21r00r00               278 	ld	hl, #_playerlocation
+      0000E2 36 0A                  279 	ld	(hl), #0x0a
+                                    280 ;main.c:64: playerlocation[1] = 100;
+      0000E4 21r01r00               281 	ld	hl, #(_playerlocation + 1)
+      0000E7 36 64                  282 	ld	(hl), #0x64
+                                    283 ;main.c:65: jumping = 0;
+                                    284 ;setupPair	HL
+      0000E9 21r02r00               285 	ld	hl, #_jumping
+      0000EC 36 00                  286 	ld	(hl), #0x00
+                                    287 ;main.c:67: move_sprite(0,playerlocation[0],playerlocation[1]);
+      0000EE FAr01r00               288 	ld	a, (#(_playerlocation + 1) + 0)
+      0000F1 F8 00                  289 	ldhl	sp,	#0
+      0000F3 77                     290 	ld	(hl), a
+      0000F4 21r00r00               291 	ld	hl, #_playerlocation
+      0000F7 46                     292 	ld	b, (hl)
+                                    293 ;c:/gbdk/include/gb/gb.h:1247: OAM_item_t * itm = &shadow_OAM[nb];
+      0000F8 11r00r00               294 	ld	de, #_shadow_OAM+0
+                                    295 ;c:/gbdk/include/gb/gb.h:1248: itm->y=y, itm->x=x;
+      0000FB F8 00                  296 	ldhl	sp,	#0
+      0000FD 7E                     297 	ld	a, (hl)
+      0000FE 12                     298 	ld	(de), a
+      0000FF 13                     299 	inc	de
+      000100 78                     300 	ld	a, b
+      000101 12                     301 	ld	(de), a
+                                    302 ;main.c:69: DISPLAY_ON;
+      000102 F0r00                  303 	ldh	a, (_LCDC_REG + 0)
+      000104 F6 80                  304 	or	a, #0x80
+      000106 E0r00                  305 	ldh	(_LCDC_REG + 0), a
+                                    306 ;main.c:70: SHOW_SPRITES;
+      000108 F0r00                  307 	ldh	a, (_LCDC_REG + 0)
+      00010A F6 02                  308 	or	a, #0x02
+      00010C E0r00                  309 	ldh	(_LCDC_REG + 0), a
+                                    310 ;main.c:72: while(1){
+      00010E                        311 00137$:
+                                    312 ;main.c:74: if(joypad() & J_LEFT){
+      00010E CDr00r00               313 	call	_joypad
+      000111 CB 4B                  314 	bit	1, e
+      000113 28 35                  315 	jr	Z, 00108$
+                                    316 ;main.c:75: playerlocation[0] = playerlocation[0] -2;
+      000115 FAr00r00               317 	ld	a, (#_playerlocation + 0)
+      000118 3D                     318 	dec	a
+      000119 3D                     319 	dec	a
+      00011A EAr00r00               320 	ld	(#_playerlocation),a
+                                    321 ;main.c:76: move_sprite(0,playerlocation[0],playerlocation[1]);
+      00011D 21r01r00               322 	ld	hl, #(_playerlocation + 1)
+      000120 46                     323 	ld	b, (hl)
+      000121 5F                     324 	ld	e, a
+                                    325 ;c:/gbdk/include/gb/gb.h:1247: OAM_item_t * itm = &shadow_OAM[nb];
+      000122 21r00r00               326 	ld	hl, #_shadow_OAM
+                                    327 ;c:/gbdk/include/gb/gb.h:1248: itm->y=y, itm->x=x;
+      000125 78                     328 	ld	a, b
+      000126 22                     329 	ld	(hl+), a
+      000127 73                     330 	ld	(hl), e
+                                    331 ;main.c:77: if (currentSpriteIndex==0){
+      000128 79                     332 	ld	a, c
+      000129 B7                     333 	or	a, a
+      00012A 20 09                  334 	jr	NZ, 00105$
+                                    335 ;main.c:78: currentSpriteIndex = 2;
+      00012C 0E 02                  336 	ld	c, #0x02
+                                    337 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      00012E 21r02r00               338 	ld	hl, #(_shadow_OAM + 2)
+      000131 36 02                  339 	ld	(hl), #0x02
+                                    340 ;main.c:79: set_sprite_tile(0,currentSpriteIndex);
+      000133 18 15                  341 	jr	00108$
+      000135                        342 00105$:
+                                    343 ;main.c:81: }else if (currentSpriteIndex==2)
+      000135 79                     344 	ld	a, c
+      000136 D6 02                  345 	sub	a, #0x02
+      000138 20 09                  346 	jr	NZ, 00102$
+                                    347 ;main.c:83: currentSpriteIndex = 3;
+      00013A 0E 03                  348 	ld	c, #0x03
+                                    349 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      00013C 21r02r00               350 	ld	hl, #(_shadow_OAM + 2)
+      00013F 36 03                  351 	ld	(hl), #0x03
+                                    352 ;main.c:84: set_sprite_tile(0,currentSpriteIndex);
+      000141 18 07                  353 	jr	00108$
+      000143                        354 00102$:
+                                    355 ;main.c:86: currentSpriteIndex = 2;
+      000143 0E 02                  356 	ld	c, #0x02
+                                    357 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      000145 21r02r00               358 	ld	hl, #(_shadow_OAM + 2)
+      000148 36 02                  359 	ld	(hl), #0x02
+                                    360 ;main.c:87: set_sprite_tile(0,currentSpriteIndex);
+      00014A                        361 00108$:
+                                    362 ;main.c:92: if(joypad() & J_RIGHT){
+      00014A CDr00r00               363 	call	_joypad
+      00014D 7B                     364 	ld	a, e
+      00014E 0F                     365 	rrca
+      00014F 30 35                  366 	jr	NC, 00116$
+                                    367 ;main.c:93: playerlocation[0] = playerlocation[0] +2;
+      000151 FAr00r00               368 	ld	a, (#_playerlocation + 0)
+      000154 C6 02                  369 	add	a, #0x02
+      000156 EAr00r00               370 	ld	(#_playerlocation),a
+                                    371 ;main.c:94: move_sprite(0,playerlocation[0],playerlocation[1]);
+      000159 21r01r00               372 	ld	hl, #(_playerlocation + 1)
+      00015C 46                     373 	ld	b, (hl)
+      00015D 5F                     374 	ld	e, a
+                                    375 ;c:/gbdk/include/gb/gb.h:1247: OAM_item_t * itm = &shadow_OAM[nb];
+      00015E 21r00r00               376 	ld	hl, #_shadow_OAM
+                                    377 ;c:/gbdk/include/gb/gb.h:1248: itm->y=y, itm->x=x;
+      000161 78                     378 	ld	a, b
+      000162 22                     379 	ld	(hl+), a
+      000163 73                     380 	ld	(hl), e
+                                    381 ;main.c:95: if (currentSpriteIndex==0){
+      000164 79                     382 	ld	a, c
+      000165 B7                     383 	or	a, a
+      000166 20 09                  384 	jr	NZ, 00113$
+                                    385 ;main.c:96: currentSpriteIndex = 2;
+      000168 0E 02                  386 	ld	c, #0x02
+                                    387 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      00016A 21r02r00               388 	ld	hl, #(_shadow_OAM + 2)
+      00016D 36 02                  389 	ld	(hl), #0x02
+                                    390 ;main.c:97: set_sprite_tile(0,currentSpriteIndex);
+      00016F 18 15                  391 	jr	00116$
+      000171                        392 00113$:
+                                    393 ;main.c:99: }else if (currentSpriteIndex==2)
+      000171 79                     394 	ld	a, c
+      000172 D6 02                  395 	sub	a, #0x02
+      000174 20 09                  396 	jr	NZ, 00110$
+                                    397 ;main.c:101: currentSpriteIndex = 3;
+      000176 0E 03                  398 	ld	c, #0x03
+                                    399 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      000178 21r02r00               400 	ld	hl, #(_shadow_OAM + 2)
+      00017B 36 03                  401 	ld	(hl), #0x03
+                                    402 ;main.c:102: set_sprite_tile(0,currentSpriteIndex);
+      00017D 18 07                  403 	jr	00116$
+      00017F                        404 00110$:
+                                    405 ;main.c:104: currentSpriteIndex = 2;
+      00017F 0E 02                  406 	ld	c, #0x02
+                                    407 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      000181 21r02r00               408 	ld	hl, #(_shadow_OAM + 2)
+      000184 36 02                  409 	ld	(hl), #0x02
+                                    410 ;main.c:105: set_sprite_tile(0,currentSpriteIndex);
+      000186                        411 00116$:
+                                    412 ;main.c:110: if(joypad() & J_UP){
+      000186 CDr00r00               413 	call	_joypad
+      000189 CB 53                  414 	bit	2, e
+      00018B 28 3B                  415 	jr	Z, 00124$
+                                    416 ;main.c:111: playerlocation[1] = playerlocation[1] -2;
+      00018D FAr01r00               417 	ld	a, (#(_playerlocation + 1) + 0)
+      000190 3D                     418 	dec	a
+      000191 3D                     419 	dec	a
+      000192 EAr01r00               420 	ld	(#(_playerlocation + 1)),a
+                                    421 ;main.c:112: move_sprite(0,playerlocation[0],playerlocation[1]);
+      000195 F8 00                  422 	ldhl	sp,	#0
+      000197 77                     423 	ld	(hl), a
+      000198 21r00r00               424 	ld	hl, #_playerlocation
+      00019B 46                     425 	ld	b, (hl)
+                                    426 ;c:/gbdk/include/gb/gb.h:1247: OAM_item_t * itm = &shadow_OAM[nb];
+      00019C 11r00r00               427 	ld	de, #_shadow_OAM+0
+                                    428 ;c:/gbdk/include/gb/gb.h:1248: itm->y=y, itm->x=x;
+      00019F F8 00                  429 	ldhl	sp,	#0
+      0001A1 7E                     430 	ld	a, (hl)
+      0001A2 12                     431 	ld	(de), a
+      0001A3 13                     432 	inc	de
+      0001A4 78                     433 	ld	a, b
+      0001A5 12                     434 	ld	(de), a
+                                    435 ;main.c:113: if (currentSpriteIndex==0){
+      0001A6 79                     436 	ld	a, c
+      0001A7 B7                     437 	or	a, a
+      0001A8 20 09                  438 	jr	NZ, 00121$
+                                    439 ;main.c:114: currentSpriteIndex = 2;
+      0001AA 0E 02                  440 	ld	c, #0x02
+                                    441 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      0001AC 21r02r00               442 	ld	hl, #(_shadow_OAM + 2)
+      0001AF 36 02                  443 	ld	(hl), #0x02
+                                    444 ;main.c:115: set_sprite_tile(0,currentSpriteIndex);
+      0001B1 18 15                  445 	jr	00124$
+      0001B3                        446 00121$:
+                                    447 ;main.c:117: }else if (currentSpriteIndex==2)
+      0001B3 79                     448 	ld	a, c
+      0001B4 D6 02                  449 	sub	a, #0x02
+      0001B6 20 09                  450 	jr	NZ, 00118$
+                                    451 ;main.c:119: currentSpriteIndex = 3;
+      0001B8 0E 03                  452 	ld	c, #0x03
+                                    453 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      0001BA 21r02r00               454 	ld	hl, #(_shadow_OAM + 2)
+      0001BD 36 03                  455 	ld	(hl), #0x03
+                                    456 ;main.c:120: set_sprite_tile(0,currentSpriteIndex);
+      0001BF 18 07                  457 	jr	00124$
+      0001C1                        458 00118$:
+                                    459 ;main.c:122: currentSpriteIndex = 2;
+      0001C1 0E 02                  460 	ld	c, #0x02
+                                    461 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      0001C3 21r02r00               462 	ld	hl, #(_shadow_OAM + 2)
+      0001C6 36 02                  463 	ld	(hl), #0x02
+                                    464 ;main.c:123: set_sprite_tile(0,currentSpriteIndex);
+      0001C8                        465 00124$:
+                                    466 ;main.c:127: if(joypad() & J_DOWN){
+      0001C8 CDr00r00               467 	call	_joypad
+      0001CB CB 5B                  468 	bit	3, e
+      0001CD 28 3B                  469 	jr	Z, 00132$
+                                    470 ;main.c:128: playerlocation[1] = playerlocation[1] +2;
+      0001CF FAr01r00               471 	ld	a, (#(_playerlocation + 1) + 0)
+      0001D2 C6 02                  472 	add	a, #0x02
+      0001D4 EAr01r00               473 	ld	(#(_playerlocation + 1)),a
+                                    474 ;main.c:129: move_sprite(0,playerlocation[0],playerlocation[1]);
+      0001D7 F8 00                  475 	ldhl	sp,	#0
+      0001D9 77                     476 	ld	(hl), a
+      0001DA 21r00r00               477 	ld	hl, #_playerlocation
+      0001DD 46                     478 	ld	b, (hl)
+                                    479 ;c:/gbdk/include/gb/gb.h:1247: OAM_item_t * itm = &shadow_OAM[nb];
+      0001DE 11r00r00               480 	ld	de, #_shadow_OAM
+                                    481 ;c:/gbdk/include/gb/gb.h:1248: itm->y=y, itm->x=x;
+      0001E1 F8 00                  482 	ldhl	sp,	#0
+      0001E3 7E                     483 	ld	a, (hl)
+      0001E4 12                     484 	ld	(de), a
+      0001E5 13                     485 	inc	de
+      0001E6 78                     486 	ld	a, b
+      0001E7 12                     487 	ld	(de), a
+                                    488 ;main.c:130: if (currentSpriteIndex==0){
+      0001E8 79                     489 	ld	a, c
+      0001E9 B7                     490 	or	a, a
+      0001EA 20 09                  491 	jr	NZ, 00129$
+                                    492 ;main.c:131: currentSpriteIndex = 2;
+      0001EC 0E 02                  493 	ld	c, #0x02
+                                    494 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      0001EE 21r02r00               495 	ld	hl, #(_shadow_OAM + 2)
+      0001F1 36 02                  496 	ld	(hl), #0x02
+                                    497 ;main.c:132: set_sprite_tile(0,currentSpriteIndex);
+      0001F3 18 15                  498 	jr	00132$
+      0001F5                        499 00129$:
+                                    500 ;main.c:134: }else if (currentSpriteIndex==2)
+      0001F5 79                     501 	ld	a, c
+      0001F6 D6 02                  502 	sub	a, #0x02
+      0001F8 20 09                  503 	jr	NZ, 00126$
+                                    504 ;main.c:136: currentSpriteIndex = 3;
+      0001FA 0E 03                  505 	ld	c, #0x03
+                                    506 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      0001FC 21r02r00               507 	ld	hl, #(_shadow_OAM + 2)
+      0001FF 36 03                  508 	ld	(hl), #0x03
+                                    509 ;main.c:137: set_sprite_tile(0,currentSpriteIndex);
+      000201 18 07                  510 	jr	00132$
+      000203                        511 00126$:
+                                    512 ;main.c:139: currentSpriteIndex = 2;
+      000203 0E 02                  513 	ld	c, #0x02
+                                    514 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      000205 21r02r00               515 	ld	hl, #(_shadow_OAM + 2)
+      000208 36 02                  516 	ld	(hl), #0x02
+                                    517 ;main.c:140: set_sprite_tile(0,currentSpriteIndex);
+      00020A                        518 00132$:
+                                    519 ;main.c:145: if((joypad() & J_A) || jumping == 1){
+      00020A CDr00r00               520 	call	_joypad
+      00020D CB 63                  521 	bit	4, e
+      00020F 20 06                  522 	jr	NZ, 00133$
+                                    523 ;setupPair	HL
+      000211 FAr02r00               524 	ld	a, (#_jumping)
+      000214 3D                     525 	dec	a
+      000215 20 0E                  526 	jr	NZ, 00134$
+      000217                        527 00133$:
+                                    528 ;main.c:146: jump(0,playerlocation);
+      000217 C5                     529 	push	bc
+      000218 11r00r00               530 	ld	de, #_playerlocation
+      00021B D5                     531 	push	de
+      00021C AF                     532 	xor	a, a
+      00021D F5                     533 	push	af
+      00021E 33                     534 	inc	sp
+      00021F CDr1Br00               535 	call	_jump
+      000222 E8 03                  536 	add	sp, #3
+      000224 C1                     537 	pop	bc
+      000225                        538 00134$:
+                                    539 ;main.c:149: performantdelay(5);
+      000225 C5                     540 	push	bc
+      000226 3E 05                  541 	ld	a, #0x05
+      000228 F5                     542 	push	af
+      000229 33                     543 	inc	sp
+      00022A CDr00r00               544 	call	_performantdelay
+      00022D 33                     545 	inc	sp
+      00022E C1                     546 	pop	bc
+                                    547 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      00022F 21r02r00               548 	ld	hl, #(_shadow_OAM + 2)
+      000232 36 00                  549 	ld	(hl), #0x00
+                                    550 ;main.c:150: set_sprite_tile(0,0);
+      000234 C3r0Er01               551 	jp	00137$
+                                    552 ;main.c:154: }
+      000237 33                     553 	inc	sp
+      000238 C9                     554 	ret
+                                    555 	.area _CODE
+                                    556 	.area _INITIALIZER
+      000000                        557 __xinit__yuckChar:
+      000000 00                     558 	.db #0x00	; 0
+      000001 7E                     559 	.db #0x7e	; 126
+      000002 7E                     560 	.db #0x7e	; 126
+      000003 81                     561 	.db #0x81	; 129
+      000004 7E                     562 	.db #0x7e	; 126
+      000005 A5                     563 	.db #0xa5	; 165
+      000006 7E                     564 	.db #0x7e	; 126
+      000007 99                     565 	.db #0x99	; 153
+      000008 7E                     566 	.db #0x7e	; 126
+      000009 81                     567 	.db #0x81	; 129
+      00000A 00                     568 	.db #0x00	; 0
+      00000B FF                     569 	.db #0xff	; 255
+      00000C 00                     570 	.db #0x00	; 0
+      00000D E7                     571 	.db #0xe7	; 231
+      00000E C3                     572 	.db #0xc3	; 195
+      00000F 00                     573 	.db #0x00	; 0
+      000010 00                     574 	.db #0x00	; 0
+      000011 7E                     575 	.db #0x7e	; 126
+      000012 7E                     576 	.db #0x7e	; 126
+      000013 81                     577 	.db #0x81	; 129
+      000014 7E                     578 	.db #0x7e	; 126
+      000015 A5                     579 	.db #0xa5	; 165
+      000016 7E                     580 	.db #0x7e	; 126
+      000017 99                     581 	.db #0x99	; 153
+      000018 7E                     582 	.db #0x7e	; 126
+      000019 81                     583 	.db #0x81	; 129
+      00001A 00                     584 	.db #0x00	; 0
+      00001B FF                     585 	.db #0xff	; 255
+      00001C 00                     586 	.db #0x00	; 0
+      00001D 3C                     587 	.db #0x3c	; 60
+      00001E 3C                     588 	.db #0x3c	; 60
+      00001F 00                     589 	.db #0x00	; 0
+      000020 00                     590 	.db #0x00	; 0
+      000021 7E                     591 	.db #0x7e	; 126
+      000022 7E                     592 	.db #0x7e	; 126
+      000023 81                     593 	.db #0x81	; 129
+      000024 7E                     594 	.db #0x7e	; 126
+      000025 A5                     595 	.db #0xa5	; 165
+      000026 7E                     596 	.db #0x7e	; 126
+      000027 99                     597 	.db #0x99	; 153
+      000028 7E                     598 	.db #0x7e	; 126
+      000029 81                     599 	.db #0x81	; 129
+      00002A 00                     600 	.db #0x00	; 0
+      00002B FF                     601 	.db #0xff	; 255
+      00002C 00                     602 	.db #0x00	; 0
+      00002D E7                     603 	.db #0xe7	; 231
+      00002E 03                     604 	.db #0x03	; 3
+      00002F C0                     605 	.db #0xc0	; 192
+      000030 00                     606 	.db #0x00	; 0
+      000031 7E                     607 	.db #0x7e	; 126
+      000032 7E                     608 	.db #0x7e	; 126
+      000033 81                     609 	.db #0x81	; 129
+      000034 7E                     610 	.db #0x7e	; 126
+      000035 A5                     611 	.db #0xa5	; 165
+      000036 7E                     612 	.db #0x7e	; 126
+      000037 99                     613 	.db #0x99	; 153
+      000038 7E                     614 	.db #0x7e	; 126
+      000039 81                     615 	.db #0x81	; 129
+      00003A 00                     616 	.db #0x00	; 0
+      00003B FF                     617 	.db #0xff	; 255
+      00003C 00                     618 	.db #0x00	; 0
+      00003D E7                     619 	.db #0xe7	; 231
+      00003E C0                     620 	.db #0xc0	; 192
+      00003F 03                     621 	.db #0x03	; 3
+      000040 00                     622 	.db #0x00	; 0
+      000041 7E                     623 	.db #0x7e	; 126
+      000042 7E                     624 	.db #0x7e	; 126
+      000043 81                     625 	.db #0x81	; 129
+      000044 7E                     626 	.db #0x7e	; 126
+      000045 A5                     627 	.db #0xa5	; 165
+      000046 7E                     628 	.db #0x7e	; 126
+      000047 99                     629 	.db #0x99	; 153
+      000048 7E                     630 	.db #0x7e	; 126
+      000049 99                     631 	.db #0x99	; 153
+      00004A 00                     632 	.db #0x00	; 0
+      00004B FF                     633 	.db #0xff	; 255
+      00004C 00                     634 	.db #0x00	; 0
+      00004D E7                     635 	.db #0xe7	; 231
+      00004E C3                     636 	.db #0xc3	; 195
+      00004F 00                     637 	.db #0x00	; 0
+      000050 00                     638 	.db #0x00	; 0
+      000051 7E                     639 	.db #0x7e	; 126
+      000052 7E                     640 	.db #0x7e	; 126
+      000053 81                     641 	.db #0x81	; 129
+      000054 7E                     642 	.db #0x7e	; 126
+      000055 C9                     643 	.db #0xc9	; 201
+      000056 7E                     644 	.db #0x7e	; 126
+      000057 B1                     645 	.db #0xb1	; 177
+      000058 7E                     646 	.db #0x7e	; 126
+      000059 B1                     647 	.db #0xb1	; 177
+      00005A 00                     648 	.db #0x00	; 0
+      00005B FF                     649 	.db #0xff	; 255
+      00005C 00                     650 	.db #0x00	; 0
+      00005D E7                     651 	.db #0xe7	; 231
+      00005E C3                     652 	.db #0xc3	; 195
+      00005F 00                     653 	.db #0x00	; 0
+      000060 00                     654 	.db #0x00	; 0
+      000061 7E                     655 	.db #0x7e	; 126
+      000062 7E                     656 	.db #0x7e	; 126
+      000063 81                     657 	.db #0x81	; 129
+      000064 7E                     658 	.db #0x7e	; 126
+      000065 93                     659 	.db #0x93	; 147
+      000066 7E                     660 	.db #0x7e	; 126
+      000067 8D                     661 	.db #0x8d	; 141
+      000068 7E                     662 	.db #0x7e	; 126
+      000069 8D                     663 	.db #0x8d	; 141
+      00006A 00                     664 	.db #0x00	; 0
+      00006B FF                     665 	.db #0xff	; 255
+      00006C 00                     666 	.db #0x00	; 0
+      00006D E7                     667 	.db #0xe7	; 231
+      00006E C3                     668 	.db #0xc3	; 195
+      00006F 00                     669 	.db #0x00	; 0
+      000070 00                     670 	.db #0x00	; 0
+      000071 7E                     671 	.db #0x7e	; 126
+      000072 7E                     672 	.db #0x7e	; 126
+      000073 81                     673 	.db #0x81	; 129
+      000074 7E                     674 	.db #0x7e	; 126
+      000075 C9                     675 	.db #0xc9	; 201
+      000076 7E                     676 	.db #0x7e	; 126
+      000077 B1                     677 	.db #0xb1	; 177
+      000078 7E                     678 	.db #0x7e	; 126
+      000079 81                     679 	.db #0x81	; 129
+      00007A 00                     680 	.db #0x00	; 0
+      00007B FF                     681 	.db #0xff	; 255
+      00007C 00                     682 	.db #0x00	; 0
+      00007D E7                     683 	.db #0xe7	; 231
+      00007E C3                     684 	.db #0xc3	; 195
+      00007F 00                     685 	.db #0x00	; 0
+      000080 00                     686 	.db #0x00	; 0
+      000081 7E                     687 	.db #0x7e	; 126
+      000082 7E                     688 	.db #0x7e	; 126
+      000083 81                     689 	.db #0x81	; 129
+      000084 7E                     690 	.db #0x7e	; 126
+      000085 93                     691 	.db #0x93	; 147
+      000086 7E                     692 	.db #0x7e	; 126
+      000087 8D                     693 	.db #0x8d	; 141
+      000088 7E                     694 	.db #0x7e	; 126
+      000089 81                     695 	.db #0x81	; 129
+      00008A 00                     696 	.db #0x00	; 0
+      00008B FF                     697 	.db #0xff	; 255
+      00008C 00                     698 	.db #0x00	; 0
+      00008D E7                     699 	.db #0xe7	; 231
+      00008E C3                     700 	.db #0xc3	; 195
+      00008F 00                     701 	.db #0x00	; 0
+      000090 00                     702 	.db #0x00	; 0
+      000091 7E                     703 	.db #0x7e	; 126
+      000092 7E                     704 	.db #0x7e	; 126
+      000093 A5                     705 	.db #0xa5	; 165
+      000094 7E                     706 	.db #0x7e	; 126
+      000095 81                     707 	.db #0x81	; 129
+      000096 7E                     708 	.db #0x7e	; 126
+      000097 99                     709 	.db #0x99	; 153
+      000098 7E                     710 	.db #0x7e	; 126
+      000099 81                     711 	.db #0x81	; 129
+      00009A 00                     712 	.db #0x00	; 0
+      00009B FF                     713 	.db #0xff	; 255
+      00009C 00                     714 	.db #0x00	; 0
+      00009D E7                     715 	.db #0xe7	; 231
+      00009E C3                     716 	.db #0xc3	; 195
+      00009F 00                     717 	.db #0x00	; 0
+      0000A0 00                     718 	.db #0x00	; 0
+      0000A1 7E                     719 	.db #0x7e	; 126
+      0000A2 7E                     720 	.db #0x7e	; 126
+      0000A3 81                     721 	.db #0x81	; 129
+      0000A4 7E                     722 	.db #0x7e	; 126
+      0000A5 81                     723 	.db #0x81	; 129
+      0000A6 7E                     724 	.db #0x7e	; 126
+      0000A7 A5                     725 	.db #0xa5	; 165
+      0000A8 7E                     726 	.db #0x7e	; 126
+      0000A9 99                     727 	.db #0x99	; 153
+      0000AA 00                     728 	.db #0x00	; 0
+      0000AB FF                     729 	.db #0xff	; 255
+      0000AC 00                     730 	.db #0x00	; 0
+      0000AD E7                     731 	.db #0xe7	; 231
+      0000AE C3                     732 	.db #0xc3	; 195
+      0000AF 00                     733 	.db #0x00	; 0
+      0000B0                        734 __xinit__gravity:
+      0000B0 FE                     735 	.db #0xfe	; 254
+      0000B1                        736 __xinit__floorYposition:
+      0000B1 64                     737 	.db #0x64	; 100	'd'
+                                    738 	.area _CABS (ABS)

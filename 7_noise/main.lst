@@ -1,0 +1,88 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.1.6 #12439 (MINGW32)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module main
+                                      6 	.optsdcc -mgbz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _main
+                                     12 	.globl _joypad
+                                     13 	.globl _delay
+                                     14 ;--------------------------------------------------------
+                                     15 ; special function registers
+                                     16 ;--------------------------------------------------------
+                                     17 ;--------------------------------------------------------
+                                     18 ; ram data
+                                     19 ;--------------------------------------------------------
+                                     20 	.area _DATA
+                                     21 ;--------------------------------------------------------
+                                     22 ; ram data
+                                     23 ;--------------------------------------------------------
+                                     24 	.area _INITIALIZED
+                                     25 ;--------------------------------------------------------
+                                     26 ; absolute external ram data
+                                     27 ;--------------------------------------------------------
+                                     28 	.area _DABS (ABS)
+                                     29 ;--------------------------------------------------------
+                                     30 ; global & static initialisations
+                                     31 ;--------------------------------------------------------
+                                     32 	.area _HOME
+                                     33 	.area _GSINIT
+                                     34 	.area _GSFINAL
+                                     35 	.area _GSINIT
+                                     36 ;--------------------------------------------------------
+                                     37 ; Home
+                                     38 ;--------------------------------------------------------
+                                     39 	.area _HOME
+                                     40 	.area _HOME
+                                     41 ;--------------------------------------------------------
+                                     42 ; code
+                                     43 ;--------------------------------------------------------
+                                     44 	.area _CODE
+                                     45 ;main.c:4: void main(){
+                                     46 ;	---------------------------------
+                                     47 ; Function main
+                                     48 ; ---------------------------------
+      000000                         49 _main::
+                                     50 ;main.c:7: NR52_REG = 0x80; // is 1000 0000 in binary and turns on sound
+      000000 3E 80                   51 	ld	a, #0x80
+      000002 E0r00                   52 	ldh	(_NR52_REG + 0), a
+                                     53 ;main.c:8: NR50_REG = 0x77; // sets the volume for both left and right channel just set to max 0x77
+      000004 3E 77                   54 	ld	a, #0x77
+      000006 E0r00                   55 	ldh	(_NR50_REG + 0), a
+                                     56 ;main.c:9: NR51_REG = 0xFF; // is 1111 1111 in binary, select which chanels we want to use in this case all of them. One bit for the L one bit for the R of all four channels
+      000008 3E FF                   57 	ld	a, #0xff
+      00000A E0r00                   58 	ldh	(_NR51_REG + 0), a
+                                     59 ;main.c:12: while(1){
+      00000C                         60 00104$:
+                                     61 ;main.c:13: UBYTE joypad_state = joypad();
+      00000C CDr00r00                62 	call	_joypad
+      00000F 7B                      63 	ld	a, e
+                                     64 ;main.c:14: if(joypad_state){
+      000010 B7                      65 	or	a, a
+      000011 28 F9                   66 	jr	Z, 00104$
+                                     67 ;main.c:18: NR41_REG = 0x1F;
+      000013 3E 1F                   68 	ld	a, #0x1f
+      000015 E0r00                   69 	ldh	(_NR41_REG + 0), a
+                                     70 ;main.c:25: NR42_REG = 0xF1;
+      000017 3E F1                   71 	ld	a, #0xf1
+      000019 E0r00                   72 	ldh	(_NR42_REG + 0), a
+                                     73 ;main.c:34: NR43_REG = 0x30;
+      00001B 3E 30                   74 	ld	a, #0x30
+      00001D E0r00                   75 	ldh	(_NR43_REG + 0), a
+                                     76 ;main.c:41: NR44_REG = 0xC0;  
+      00001F 3E C0                   77 	ld	a, #0xc0
+      000021 E0r00                   78 	ldh	(_NR44_REG + 0), a
+                                     79 ;main.c:43: delay(1000);
+      000023 11 E8 03                80 	ld	de, #0x03e8
+      000026 D5                      81 	push	de
+      000027 CDr00r00                82 	call	_delay
+      00002A E1                      83 	pop	hl
+                                     84 ;main.c:47: }
+      00002B 18 DF                   85 	jr	00104$
+                                     86 	.area _CODE
+                                     87 	.area _INITIALIZER
+                                     88 	.area _CABS (ABS)

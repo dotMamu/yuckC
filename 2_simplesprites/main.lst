@@ -1,0 +1,143 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.1.6 #12439 (MINGW32)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module main
+                                      6 	.optsdcc -mgbz80
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _main
+                                     12 	.globl _set_sprite_data
+                                     13 	.globl _delay
+                                     14 	.globl _Smile
+                                     15 ;--------------------------------------------------------
+                                     16 ; special function registers
+                                     17 ;--------------------------------------------------------
+                                     18 ;--------------------------------------------------------
+                                     19 ; ram data
+                                     20 ;--------------------------------------------------------
+                                     21 	.area _DATA
+                                     22 ;--------------------------------------------------------
+                                     23 ; ram data
+                                     24 ;--------------------------------------------------------
+                                     25 	.area _INITIALIZED
+      000000                         26 _Smile::
+      000000                         27 	.ds 32
+                                     28 ;--------------------------------------------------------
+                                     29 ; absolute external ram data
+                                     30 ;--------------------------------------------------------
+                                     31 	.area _DABS (ABS)
+                                     32 ;--------------------------------------------------------
+                                     33 ; global & static initialisations
+                                     34 ;--------------------------------------------------------
+                                     35 	.area _HOME
+                                     36 	.area _GSINIT
+                                     37 	.area _GSFINAL
+                                     38 	.area _GSINIT
+                                     39 ;--------------------------------------------------------
+                                     40 ; Home
+                                     41 ;--------------------------------------------------------
+                                     42 	.area _HOME
+                                     43 	.area _HOME
+                                     44 ;--------------------------------------------------------
+                                     45 ; code
+                                     46 ;--------------------------------------------------------
+                                     47 	.area _CODE
+                                     48 ;main.c:5: void main(){
+                                     49 ;	---------------------------------
+                                     50 ; Function main
+                                     51 ; ---------------------------------
+      000000                         52 _main::
+                                     53 ;main.c:6: UINT8 currentSpriteIndex = 0;
+      000000 0E 00                   54 	ld	c, #0x00
+                                     55 ;main.c:7: set_sprite_data(0,2,Smile);
+      000002 11r00r00                56 	ld	de, #_Smile
+      000005 D5                      57 	push	de
+      000006 21 00 02                58 	ld	hl, #0x200
+      000009 E5                      59 	push	hl
+      00000A CDr00r00                60 	call	_set_sprite_data
+      00000D E8 04                   61 	add	sp, #4
+                                     62 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      00000F 21r02r00                63 	ld	hl, #(_shadow_OAM + 2)
+      000012 36 00                   64 	ld	(hl), #0x00
+                                     65 ;c:/gbdk/include/gb/gb.h:1247: OAM_item_t * itm = &shadow_OAM[nb];
+      000014 21r00r00                66 	ld	hl, #_shadow_OAM
+                                     67 ;c:/gbdk/include/gb/gb.h:1248: itm->y=y, itm->x=x;
+      000017 3E 4E                   68 	ld	a, #0x4e
+      000019 22                      69 	ld	(hl+), a
+      00001A 36 58                   70 	ld	(hl), #0x58
+                                     71 ;main.c:10: SHOW_SPRITES;
+      00001C F0r00                   72 	ldh	a, (_LCDC_REG + 0)
+      00001E F6 02                   73 	or	a, #0x02
+      000020 E0r00                   74 	ldh	(_LCDC_REG + 0), a
+                                     75 ;main.c:12: while(1){
+      000022                         76 00105$:
+                                     77 ;main.c:13: if(currentSpriteIndex== 0){
+      000022 79                      78 	ld	a, c
+      000023 B7                      79 	or	a, a
+                                     80 ;main.c:14: currentSpriteIndex = 1;
+                                     81 ;main.c:18: currentSpriteIndex = 0;
+      000024 0E 01                   82 	ld	c, #0x01
+      000026 28 02                   83 	jr	Z, 00103$
+      000028 0E 00                   84 	ld	c, #0x00
+      00002A                         85 00103$:
+                                     86 ;c:/gbdk/include/gb/gb.h:1174: shadow_OAM[nb].tile=tile;
+      00002A 21r02r00                87 	ld	hl, #(_shadow_OAM + 2)
+      00002D 71                      88 	ld	(hl), c
+                                     89 ;main.c:22: delay(1000);
+      00002E C5                      90 	push	bc
+      00002F 11 E8 03                91 	ld	de, #0x03e8
+      000032 D5                      92 	push	de
+      000033 CDr00r00                93 	call	_delay
+      000036 E1                      94 	pop	hl
+      000037 C1                      95 	pop	bc
+                                     96 ;c:/gbdk/include/gb/gb.h:1263: OAM_item_t * itm = &shadow_OAM[nb];
+      000038 11r00r00                97 	ld	de, #_shadow_OAM+0
+                                     98 ;c:/gbdk/include/gb/gb.h:1264: itm->y+=y, itm->x+=x;
+      00003B 1A                      99 	ld	a, (de)
+      00003C 12                     100 	ld	(de), a
+      00003D 13                     101 	inc	de
+      00003E 1A                     102 	ld	a, (de)
+      00003F C6 0A                  103 	add	a, #0x0a
+      000041 12                     104 	ld	(de), a
+                                    105 ;main.c:23: scroll_sprite(0,10,0);
+                                    106 ;main.c:29: }
+      000042 18 DE                  107 	jr	00105$
+                                    108 	.area _CODE
+                                    109 	.area _INITIALIZER
+      000000                        110 __xinit__Smile:
+      000000 7C                     111 	.db #0x7c	; 124
+      000001 7C                     112 	.db #0x7c	; 124
+      000002 FF                     113 	.db #0xff	; 255
+      000003 81                     114 	.db #0x81	; 129
+      000004 FF                     115 	.db #0xff	; 255
+      000005 A5                     116 	.db #0xa5	; 165
+      000006 FF                     117 	.db #0xff	; 255
+      000007 81                     118 	.db #0x81	; 129
+      000008 FF                     119 	.db #0xff	; 255
+      000009 81                     120 	.db #0x81	; 129
+      00000A FF                     121 	.db #0xff	; 255
+      00000B BD                     122 	.db #0xbd	; 189
+      00000C FF                     123 	.db #0xff	; 255
+      00000D 81                     124 	.db #0x81	; 129
+      00000E 7E                     125 	.db #0x7e	; 126
+      00000F 7E                     126 	.db #0x7e	; 126
+      000010 7C                     127 	.db #0x7c	; 124
+      000011 7C                     128 	.db #0x7c	; 124
+      000012 FF                     129 	.db #0xff	; 255
+      000013 81                     130 	.db #0x81	; 129
+      000014 FF                     131 	.db #0xff	; 255
+      000015 A5                     132 	.db #0xa5	; 165
+      000016 FF                     133 	.db #0xff	; 255
+      000017 81                     134 	.db #0x81	; 129
+      000018 FF                     135 	.db #0xff	; 255
+      000019 A5                     136 	.db #0xa5	; 165
+      00001A FF                     137 	.db #0xff	; 255
+      00001B 99                     138 	.db #0x99	; 153
+      00001C FF                     139 	.db #0xff	; 255
+      00001D 81                     140 	.db #0x81	; 129
+      00001E 7E                     141 	.db #0x7e	; 126
+      00001F 7E                     142 	.db #0x7e	; 126
+                                    143 	.area _CABS (ABS)
