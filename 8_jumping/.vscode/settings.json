@@ -1,0 +1,17 @@
+{
+    "C_Cpp.default.includePath": [],
+    "C_Cpp.default.systemIncludePath": [],
+    "bracket-pair-colorizer-2.colors": [
+
+        "Gold",
+        "Orchid",
+        "LightSkyBlue"
+    ],
+    "bracket-pair-colorizer-2.activeScopeCSS": [
+    
+        "borderStyle : solid",
+        "borderWidth : 1px",
+        "borderColor : {color}",
+        "opacity: 0.5"
+    ]
+}
