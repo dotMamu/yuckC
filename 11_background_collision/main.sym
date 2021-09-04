@@ -7,23 +7,36 @@ Symbol Table
     .__.ABS.                                                    =  000000 G
     .__.CPU.                                                    =  000000 L
     .__.H$L.                                                    =  000000 L
-  0 ___str_0                                                       000009 R
-  0 _main                                                          000000 GR
-    _printf                                                        ****** GX
-
+    _LCDC_REG                                                      ****** GX
+  2 _MazeMap                                                       000040 GR
+  2 _MazeSprites                                                   000000 GR
+  7 __xinit__MazeMap                                               000040 R
+  7 __xinit__MazeSprites                                           000000 R
+  7 __xinit__snail                                                 0001A8 R
+  0 _canplayermove                                                 00000D GR
+    _joypad                                                        ****** GX
+  0 _main                                                          00000E GR
+  0 _performantdelay                                               000000 GR
+  1 _playerlocation                                                000000 GR
+    _set_bkg_data                                                  ****** GX
+    _set_bkg_tiles                                                 ****** GX
+    _set_sprite_data                                               ****** GX
+    _shadow_OAM                                                    ****** GX
+  2 _snail                                                         0001A8 GR
+    _wait_vbl_done                                                 ****** GX
 
 ASxxxx Assembler V02.00 + NoICE + SDCC mods  (GameBoy Z80-like CPU), page 2.
 Hexadecimal [24-Bits]
 
 Area Table
 
-   0 _CODE                                      size     15   flags    0
-   1 _DATA                                      size      0   flags    0
-   2 _INITIALIZED                               size      0   flags    0
+   0 _CODE                                      size     EB   flags    0
+   1 _DATA                                      size      2   flags    0
+   2 _INITIALIZED                               size    1B8   flags    0
    3 _DABS                                      size      0   flags    8
    4 _HOME                                      size      0   flags    0
    5 _GSINIT                                    size      0   flags    0
    6 _GSFINAL                                   size      0   flags    0
-   7 _INITIALIZER                               size      0   flags    0
+   7 _INITIALIZER                               size    1B8   flags    0
    8 _CABS                                      size      0   flags    8
 

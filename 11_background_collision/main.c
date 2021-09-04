@@ -40,26 +40,27 @@ void main(){
 
     while (1)
     {
-        if(joyad() & J_LEFT){
+        if(joypad() & J_LEFT){
             playerlocation[0] -=8;
             move_sprite(0,playerlocation[0],playerlocation[1]);
 
         }
-        else if(joyad() & J_RIGHT){
+        else if(joypad() & J_RIGHT){
             playerlocation[0] +=8;
             move_sprite(0,playerlocation[0],playerlocation[1]);
 
         }
-        else if(joyad() & J_UP){
+        else if(joypad() & J_UP){
             playerlocation[1] -=8;
             move_sprite(0,playerlocation[0],playerlocation[1]);
 
         }
-        else if(joyad() & J_DOWN){
+        else if(joypad() & J_DOWN){
             playerlocation[1] +=8;
             move_sprite(0,playerlocation[0],playerlocation[1]);
 
         }
+        performantdelay(10);
     }
     
 
